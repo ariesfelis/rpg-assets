@@ -228,3 +228,17 @@ h1 {
 .nav:hover{
     background: var(--color1);
 }
+
+.notice {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.notice p {
+    margin: 4px 0;
+}

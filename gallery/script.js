@@ -110,9 +110,6 @@ async function loadFolder(path){
     // met à jour l'URL pour refléter le dossier actuel
     location.hash = encodeURIComponent(path);
 }
-    // fil d'ariane
-    updateBreadcrumb(path);
-}
 
 // back to homepage
 back.onclick = ()=>{

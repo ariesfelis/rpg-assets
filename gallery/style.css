@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@font-face {
+    font-family: "Astone Nouvea";
+    src: url("./fonts/Astone-Nouvea.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --bg1: #141419;
+    --bg2: #1d1d29;
+    --bg3: #3a3a55;
+    --bg4: #616a75;
+    --tx1: #d2d1c1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 40px;
+    background: var(--bg1);
+    color: var(--tx1);
+    font-family: Inter, sans-serif;
+    height: 100vh;
+}
+
+h1 {
+    font-family: "Astone Nouvea";
+    font-size: 42px;
+}
+
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+#breadcrumb {
+    font-size: 12px;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+#back {
+    padding: 10px 16px;
+    background: var(--tx1);
+    border:1px solid #0a0605;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .2s;
+    color: var(--bg2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+#back:hover {
+    background: var(--bg3);
+    color: var(--tx1);
+}
+
+.hidden {
+    display: none;
+}
+
+#gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 160px);
+    gap: 20px;
+    padding-bottom: 42px;
+}
+
+.folder {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:160px;
+    height:160px;
+    padding:12px;
+    background:var(--bg2);
+    border:1px solid var(--bg3);
+    border-radius:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.folder:hover {
+    border-color: var(--bg4);
+}
+
+.folder .name {
+    margin-top:10px;
+    text-align:center;
+    font-size:14px;
+    color: var(--tx1);
+}
+
+.folder-icon {
+    width: 36px;
+}
+
+.icon {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    cursor: pointer;
+}
+
+.icon img {
+    display: block;
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: .2s;
+}
+
+.icon:hover img {
+    opacity: .8;
+}
+
+.copy {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    background: rgba(13,17,23,.85);
+    color: var(--tx1);
+    border: 1px solid var(--bg3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.icon:hover .copy {
+    opacity: 1;
+}
+
+.preview {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+
+.preview.hidden {
+    display: none;
+}
+
+.preview-content {
+    position: relative;
+    transform: translateY(40px);
+    opacity: 0;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.preview-content img {
+    max-height: 640px;
+    object-fit: contain;
+    background: white;
+    border-radius: 10px;
+}
+
+.preview.show {
+    opacity: 1;
+}
+
+.preview.show .preview-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.preview.hide {
+    opacity: 0;
+}
+
+.preview.hide .preview-content {
+    transform: translateY(40px);
+    opacity: 0;
+}
+
+.nav{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: #00000030;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color1);
+    transition: .2s;
+    padding-bottom: 5px;
+}
+
+.prev{
+    left: -70px;
+}
+
+.next{
+    margin-left: 20px;
+}
+
+.nav:hover{
+    background: var(--color1);
+}

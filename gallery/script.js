@@ -11,8 +11,14 @@ function toJsdelivr(path){
 const gallery=document.getElementById("gallery");
 const back=document.getElementById("back");
 
-let currentPath=ROOT;
+let currentPath = ROOT;
 let history = [];
+
+// si l'URL contient déjà un chemin (#...), on démarre directement dedans
+const hashPath = decodeURIComponent(location.hash.replace("#", ""));
+if (hashPath && hashPath.startsWith(ROOT)) {
+    currentPath = hashPath;
+}
 
 let currentImages = [];
 let currentImageIndex = 0;
@@ -84,27 +90,26 @@ async function loadFolder(path){
 
     const files = await getFolder(path);
 
-    const folders = files.filter(
-        f => f.type === "dir"
-    );
-
+    const folders = files.filter(f => f.type === "dir");
     const images = files.filter(
-        f =>
-        f.type === "file" &&
-        /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name)
+        f => f.type === "file" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name)
     );
     currentImages = images;
 
     showFolders(folders);
     showImages(images);
 
-    // affiche le bouton retour si pas à la racine
     if(path !== ROOT){
         back.classList.remove("hidden");
     }else{
         back.classList.add("hidden");
     }
 
+    updateBreadcrumb(path);
+
+    // met à jour l'URL pour refléter le dossier actuel
+    location.hash = encodeURIComponent(path);
+}
     // fil d'ariane
     updateBreadcrumb(path);
 }
@@ -193,4 +198,4 @@ function updateBreadcrumb(path){
 
 
 // lance la galerie
-loadFolder(ROOT);
+loadFolder(currentPath);

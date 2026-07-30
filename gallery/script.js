@@ -1,6 +1,12 @@
 const USER="ariesfelis";
-const REPO="rpg-assets;
+const REPO="rpg-assets";
 const ROOT="assets";
+const BRANCH="main"; // adapte si ta branche par défaut a un autre nom
+
+// transforme un chemin de fichier GitHub en URL jsDelivr
+function toJsdelivr(path){
+    return `https://cdn.jsdelivr.net/gh/${USER}/${REPO}@${BRANCH}/${path}`;
+}
  
 const gallery=document.getElementById("gallery");
 const back=document.getElementById("back");
@@ -44,14 +50,15 @@ function showFolders(folders){
 function showImages(images){
 
     images.forEach(image=>{
+        const cdnUrl = toJsdelivr(image.path); // <-- lien jsDelivr
+
         const card=document.createElement("div");
         card.className="icon";
         card.innerHTML=`
-            <img src="${image.download_url}" alt="">
+            <img src="${cdnUrl}" alt="">
             <button class="copy" title="Copier l'URL">⧉</button>
         `;
         const button=card.querySelector(".copy");
-
         const img = card.querySelector("img");
 
         img.onclick = ()=>{
@@ -61,7 +68,7 @@ function showImages(images){
 
         button.onclick=(e)=>{
             e.stopPropagation();
-            navigator.clipboard.writeText(image.download_url);
+            navigator.clipboard.writeText(cdnUrl); // <-- copie le lien jsDelivr
             button.textContent="✓";
             setTimeout(()=>{
                 button.textContent="⧉";
@@ -120,11 +127,8 @@ const previewImage = document.getElementById("previewImage");
 
 function openPreview(){
     if(!preview || !previewImage) return;
-
-    previewImage.src = currentImages[currentImageIndex].download_url;
-
+    previewImage.src = toJsdelivr(currentImages[currentImageIndex].path);
     preview.classList.remove("hidden", "hide");
-
     requestAnimationFrame(() => {
         preview.classList.add("show");
     });
@@ -170,9 +174,8 @@ function showImage(index){
     }else if(index >= currentImages.length){
         index = 0;
     }
-
     currentImageIndex = index;
-    previewImage.src = currentImages[currentImageIndex].download_url;
+    previewImage.src = toJsdelivr(currentImages[currentImageIndex].path);
 }
 
 // ajout fil d'ariane

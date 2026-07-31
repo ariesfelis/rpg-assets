@@ -259,25 +259,74 @@ h1 {
 
 .credits {
     margin-top: 60px;
-    padding-top: 16px;
+    padding-top: 24px;
     border-top: 1px solid var(--bg2);
-    font-size: 11px;
-    color: var(--bg4);
     display: flex;
-    gap: 10px;
-    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
-.credits a {
-    color: var(--bg4);
+.credit-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 16px 20px;
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: 10px;
     text-decoration: none;
-    border-bottom: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     transition: .2s;
 }
 
-.credits a:hover {
+.credit-card:hover {
+    border-color: var(--bg4);
+    background: var(--bg3);
+}
+
+.credit-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--bg4);
+}
+
+.credit-name {
+    font-size: 15px;
+    font-weight: 600;
     color: var(--tx1);
-    border-bottom-color: var(--tx1);
+}
+.credit-required {
+    color: var(--tx1);
+    font-weight: 500;
+}
+
+.lang-tag.warn {
+    background: #5a3030;
+    color: #f0c8c8;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 320px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: 8px;
+    color: var(--tx1);
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+}
+
+.search-bar::placeholder {
+    color: var(--bg4);
+}
+
+.search-bar:focus {
+    outline: none;
+    border-color: var(--bg4);
 }
 
 .sep {

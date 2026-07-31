@@ -87,6 +87,7 @@ function showImages(images){
 // charge un dossier
 async function loadFolder(path){
     gallery.innerHTML = "";
+if (searchInput) searchInput.value = "";
 
     const files = await getFolder(path);
 
@@ -193,6 +194,14 @@ function updateBreadcrumb(path){
     breadcrumb.textContent = parts.length ? parts.join(" / ") : "accueil";
 }
 
+const searchInput = document.getElementById("search");
 
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    document.querySelectorAll(".folder").forEach(card => {
+        const name = card.querySelector(".name").textContent.toLowerCase();
+        card.style.display = name.includes(query) ? "" : "none";
+    });
+});
 // lance la galerie
 loadFolder(currentPath);

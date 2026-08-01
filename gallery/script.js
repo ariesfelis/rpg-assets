@@ -4,8 +4,11 @@ const ROOT="assets";
 const BRANCH="main"; // adapte si ta branche par défaut a un autre nom
 
 // transforme un chemin de fichier GitHub en URL jsDelivr
+// (pas de @branche dans l'URL : certains forums rejettent le caractère "@"
+// dans leur champ d'URL d'avatar via une validation trop stricte)
 function toJsdelivr(path){
-    return `https://cdn.jsdelivr.net/gh/${USER}/${REPO}@${BRANCH}/${path}`;
+    const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+    return `https://cdn.jsdelivr.net/gh/${USER}/${REPO}/${encodedPath}`;
 }
  
 const gallery=document.getElementById("gallery");

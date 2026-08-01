@@ -292,7 +292,7 @@ async function loadStats() {
     if (cached) {
         const data = JSON.parse(cached);
         if (Date.now() - data.timestamp < CACHE_DURATION) {
-            statsEl.textContent = `${data.imageCount} avatars · ${data.fcCount} FC`;
+            statsEl.textContent = `${data.imageCount} avatars · ${data.fcCount} faceclaims`;
             return;
         }
     }

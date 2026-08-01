@@ -265,28 +265,36 @@ h1 {
 }
 
 .credits {
-    margin-top: 60px;
-    padding-top: 24px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(20, 20, 25, 0.92);
+    backdrop-filter: blur(8px);
     border-top: 1px solid var(--bg2);
+    padding: 12px 40px;
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    z-index: 100;
 }
 
-.credit-card {
-    flex: 1;
-    min-width: 200px;
-    padding: 16px 20px;
-    background: var(--bg2);
-    border: 1px solid var(--bg3);
-    border-radius: 10px;
+.credits a {
+    color: var(--bg4);
     text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
     transition: .2s;
 }
 
+.credits a:hover {
+    color: var(--tx1);
+}
+
+/* évite que le footer fixe cache le bas de la galerie */
+.container {
+    padding-bottom: 60px;
+}
 .credit-card:hover {
     border-color: var(--bg4);
     background: var(--bg3);

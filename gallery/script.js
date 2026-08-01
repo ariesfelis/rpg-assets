@@ -25,6 +25,7 @@ let currentImageIndex = 0;
 const prevImage = document.getElementById("prevImage");
 const nextImage = document.getElementById("nextImage");
 const breadcrumb = document.getElementById("breadcrumb");
+const searchInput = document.getElementById("search");
 
 // récupérer le contenu d'un dossier github
 async function getFolder(path){
@@ -87,7 +88,7 @@ function showImages(images){
 // charge un dossier
 async function loadFolder(path){
     gallery.innerHTML = "";
-if (searchInput) searchInput.value = "";
+    if (searchInput) searchInput.value = "";
 
     const files = await getFolder(path);
 
@@ -194,30 +195,45 @@ function updateBreadcrumb(path){
     breadcrumb.textContent = parts.length ? parts.join(" / ") : "accueil";
 }
 
-const searchInput = document.getElementById("search");
-
-searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
-    document.querySelectorAll(".folder").forEach(card => {
-        const name = card.querySelector(".name").textContent.toLowerCase();
-        card.style.display = name.includes(query) ? "" : "none";
+// recherche dans le dossier actuel
+if (searchInput) {
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        document.querySelectorAll(".folder").forEach(card => {
+            const name = card.querySelector(".name").textContent.toLowerCase();
+            card.style.display = name.includes(query) ? "" : "none";
+        });
     });
-});
-async function computeStats(path = ROOT) {
-    const files = await getFolder(path);
-    const folders = files.filter(f => f.type === "dir");
-    const images = files.filter(
-        f => f.type === "file" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name)
+}
+
+// --- Statistiques (avatars / FC) ---
+// Un seul appel API pour tout l'arbre du repo, pour ne pas
+// consommer la limite de requêtes GitHub (60/heure sans compte).
+async function getAllFiles() {
+    const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.tree || [];
+}
+
+async function computeStats() {
+    const allFiles = await getAllFiles();
+
+    const imagePaths = allFiles
+        .filter(f => f.type === "blob" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.path))
+        .map(f => f.path);
+
+    const imageCount = imagePaths.length;
+
+    // dossiers contenant directement des images
+    const foldersWithImages = new Set(
+        imagePaths.map(p => p.substring(0, p.lastIndexOf("/")))
     );
 
-    let imageCount = images.length;
-    let fcCount = (images.length > 0 && folders.length === 0) ? 1 : 0;
-
-    for (const folder of folders) {
-        const sub = await computeStats(folder.path);
-        imageCount += sub.imageCount;
-        fcCount += sub.fcCount;
-    }
+    // un FC = un dossier avec images, qui n'est parent d'aucun autre dossier avec images
+    const fcCount = [...foldersWithImages].filter(folder =>
+        ![...foldersWithImages].some(other => other !== folder && other.startsWith(folder + "/"))
+    ).length;
 
     return { imageCount, fcCount };
 }
@@ -242,6 +258,7 @@ async function loadStats() {
     statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
     localStorage.setItem(CACHE_KEY, JSON.stringify({ imageCount, fcCount, timestamp: Date.now() }));
 }
+
 // lance la galerie
-loadFolder(currentPath); loadFolder(currentPath);
+loadFolder(currentPath);
 loadStats();

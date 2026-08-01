@@ -27,12 +27,51 @@ const nextImage = document.getElementById("nextImage");
 const breadcrumb = document.getElementById("breadcrumb");
 const searchInput = document.getElementById("search");
 
-// récupérer le contenu d'un dossier github
-async function getFolder(path){
-    const url=`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`;
-    const res=await fetch(url);
-    return await res.json();
-} 
+// --- Données statiques (data.json) ---
+// Remplace les appels à l'API GitHub : ce fichier est généré en local
+// via generer_data_json.py et republié à chaque mise à jour de la galerie.
+// Chargé une seule fois au démarrage, ensuite tout est calculé en JS,
+// sans plus jamais interroger api.github.com (donc aucun risque de
+// limite de requêtes, peu importe le nombre de visiteurs).
+let ALL_FILES = [];
+
+async function loadData(){
+    const res = await fetch("./data.json");
+    if (!res.ok) {
+        throw new Error(`Impossible de charger data.json (${res.status})`);
+    }
+    const data = await res.json();
+    ALL_FILES = data.files || [];
+}
+
+// simule la forme de réponse de l'ancienne API GitHub (liste de
+// {type, name, path}) pour un dossier donné, à partir de ALL_FILES
+function getFolder(path){
+    const prefix = path.endsWith("/") ? path : path + "/";
+    const seenFolders = new Set();
+    const entries = [];
+
+    ALL_FILES.forEach(filePath => {
+        if (!filePath.startsWith(prefix)) return;
+
+        const rest = filePath.slice(prefix.length);
+        const slashIndex = rest.indexOf("/");
+
+        if (slashIndex === -1) {
+            // fichier directement dans ce dossier
+            entries.push({ type: "file", name: rest, path: filePath });
+        } else {
+            // sous-dossier
+            const folderName = rest.slice(0, slashIndex);
+            if (!seenFolders.has(folderName)) {
+                seenFolders.add(folderName);
+                entries.push({ type: "dir", name: folderName, path: prefix + folderName });
+            }
+        }
+    });
+
+    return entries;
+}
 
 // extrait une date normalisée AAAAMMJJ du nom de fichier, si présente.
 // Reconnaît deux formats :
@@ -95,7 +134,8 @@ function showImages(images){
         const card=document.createElement("div");
         card.className="icon";
         card.innerHTML=`
-            <img src="${cdnUrl}" alt="" loading="lazy">            <button class="copy" title="copier l'url">⧉</button>
+            <img src="${cdnUrl}" alt="" loading="lazy">
+            <button class="copy" title="Copier l'URL">⧉</button>
         `;
         const button=card.querySelector(".copy");
         const img = card.querySelector("img");
@@ -117,12 +157,11 @@ function showImages(images){
     });
 }
 
-// charge un dossier
-async function loadFolder(path){
-    gallery.innerHTML = '<div class="loading">chargement…</div>';
+// charge un dossier (aucun appel réseau, tout vient de ALL_FILES déjà en mémoire)
+function loadFolder(path){
     if (searchInput) searchInput.value = "";
 
-    const files = await getFolder(path);
+    const files = getFolder(path);
 
     const folders = files.filter(f => f.type === "dir");
     const images = sortImagesByDate(
@@ -130,7 +169,7 @@ async function loadFolder(path){
     );
     currentImages = images;
 
-    gallery.innerHTML = ""; // retire le message de chargement
+    gallery.innerHTML = "";
     showFolders(folders);
     showImages(images);
 
@@ -291,33 +330,11 @@ if (searchInput) {
     });
 }
 
-// --- Statistiques (avatars / fc) ---
-// Un seul appel API pour tout l'arbre du repo, pour ne pas
-// consommer la limite de requêtes GitHub (60/heure sans compte).
-async function getAllFiles() {
-    const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
-    const res = await fetch(url);
-
-    if (!res.ok) {
-        throw new Error(`Erreur API GitHub (${res.status})`);
-    }
-
-    const data = await res.json();
-
-    if (!data.tree) {
-        throw new Error("Réponse API inattendue : pas d'arbre de fichiers");
-    }
-
-    return data.tree;
-}
-
-async function computeStats() {
-    const allFiles = await getAllFiles();
-
-    const imagePaths = allFiles
-        .filter(f => f.type === "blob" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.path))
-        .map(f => f.path);
-
+// --- Statistiques (avatars / FC) ---
+// Calculées directement depuis ALL_FILES, déjà en mémoire : aucun
+// coût réseau supplémentaire, donc plus besoin de mise en cache.
+function computeStats() {
+    const imagePaths = ALL_FILES.filter(p => /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(p));
     const imageCount = imagePaths.length;
 
     // dossiers contenant directement des images
@@ -333,32 +350,22 @@ async function computeStats() {
     return { imageCount, fcCount };
 }
 
-async function loadStats() {
+function loadStats() {
     const statsEl = document.getElementById("stats");
     if (!statsEl) return;
 
-    const CACHE_KEY = "gallery_stats";
-    const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6h
-    const cached = localStorage.getItem(CACHE_KEY);
-
-    if (cached) {
-        const data = JSON.parse(cached);
-        if (Date.now() - data.timestamp < CACHE_DURATION) {
-            statsEl.textContent = `${data.imageCount} avatars · ${data.fcCount} faceclaims`;
-            return;
-        }
-    }
-
-    try {
-        const { imageCount, fcCount } = await computeStats();
-        statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ imageCount, fcCount, timestamp: Date.now() }));
-    } catch (err) {
-        console.error("Erreur lors du calcul des stats :", err);
-        statsEl.textContent = "stats indisponibles pour le moment";
-    }
+    const { imageCount, fcCount } = computeStats();
+    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
 }
 
-// lance la galerie
-loadFolder(currentPath);
-loadStats();
+// lance la galerie : on charge d'abord data.json, puis on affiche tout
+(async function init(){
+    try {
+        await loadData();
+        loadFolder(currentPath);
+        loadStats();
+    } catch (err) {
+        console.error("Erreur au chargement de la galerie :", err);
+        gallery.innerHTML = '<div class="loading">Erreur de chargement — vérifie que data.json existe bien à la racine du repo.</div>';
+    }
+})();

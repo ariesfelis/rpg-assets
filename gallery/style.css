@@ -20,6 +20,15 @@
 }
 
 body {
+    margin: 0;
+    padding: 40px;
+    background: var(--bg1);
+    color: var(--tx1);
+    font-family: Inter, sans-serif;
+    height: 100vh;
+}
+
+body {
     background-color: var(--bg1);
     background-image:
         radial-gradient(1px 1px at 20px 30px, var(--bg3), transparent),

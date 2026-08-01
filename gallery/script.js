@@ -3,12 +3,13 @@ const REPO="rpg-assets";
 const ROOT="assets";
 const BRANCH="main"; // adapte si ta branche par défaut a un autre nom
 
-// transforme un chemin de fichier GitHub en URL jsDelivr
-// (pas de @branche dans l'URL : certains forums rejettent le caractère "@"
-// dans leur champ d'URL d'avatar via une validation trop stricte)
-function toJsdelivr(path){
+// transforme un chemin de fichier GitHub en URL d'image utilisable partout
+// (raw.githubusercontent.com : pas de caractère "@", pas de dépendance à
+// une release GitHub, contrairement à jsDelivr — certains forums rejettent
+// les URLs contenant "@" ou celles qui nécessitent une release taguée)
+function toImageUrl(path){
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-    return `https://cdn.jsdelivr.net/gh/${USER}/${REPO}/${encodedPath}`;
+    return `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/${encodedPath}`;
 }
  
 const gallery=document.getElementById("gallery");
@@ -132,7 +133,7 @@ function showFolders(folders){
 function showImages(images){
 
     images.forEach(image=>{
-        const cdnUrl = toJsdelivr(image.path); // <-- lien jsDelivr
+        const cdnUrl = toImageUrl(image.path); // <-- lien direct GitHub
 
         const card=document.createElement("div");
         card.className="icon";
@@ -150,7 +151,7 @@ function showImages(images){
 
         button.onclick=(e)=>{
             e.stopPropagation();
-            navigator.clipboard.writeText(cdnUrl); // <-- copie le lien jsDelivr
+            navigator.clipboard.writeText(cdnUrl); // <-- copie le lien direct GitHub
             button.textContent="✓";
             setTimeout(()=>{
                 button.textContent="⧉";
@@ -206,7 +207,7 @@ const previewImage = document.getElementById("previewImage");
 
 function openPreview(){
     if(!preview || !previewImage) return;
-    previewImage.src = toJsdelivr(currentImages[currentImageIndex].path);
+    previewImage.src = toImageUrl(currentImages[currentImageIndex].path);
     preview.classList.remove("hidden", "hide");
     requestAnimationFrame(() => {
         preview.classList.add("show");
@@ -267,7 +268,7 @@ function showImage(index){
         index = 0;
     }
     currentImageIndex = index;
-    previewImage.src = toJsdelivr(currentImages[currentImageIndex].path);
+    previewImage.src = toImageUrl(currentImages[currentImageIndex].path);
 }
 
 // ajout fil d'ariane cliquable

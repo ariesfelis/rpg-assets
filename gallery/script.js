@@ -34,6 +34,39 @@ async function getFolder(path){
     return await res.json();
 } 
 
+// extrait une date normalisée AAAAMMJJ du nom de fichier, si présente.
+// Reconnaît deux formats :
+//   1. Nouvelle convention : jjmmaaaa_nom_nombre.ext (ex: 15032024_zendaya_1.png)
+//   2. Ancien format TumblThree : ..._aaaammjj_... (ex: ..._20230131_ariesfelis_...)
+function extractDate(filename){
+    // 1. jjmmaaaa au tout début du nom
+    let m = filename.match(/^(\d{2})(\d{2})(\d{4})_/);
+    if (m) {
+        const [, dd, mm, yyyy] = m;
+        return `${yyyy}${mm}${dd}`;
+    }
+
+    // 2. aaaammjj entouré d'underscores, ailleurs dans le nom
+    m = filename.match(/_(\d{8})_/);
+    if (m) return m[1];
+
+    return null;
+}
+
+// trie les images : plus récentes en premier (date détectée),
+// celles sans date reconnue sont placées à la fin, par ordre alphabétique
+function sortImagesByDate(images){
+    return [...images].sort((a, b) => {
+        const da = extractDate(a.name);
+        const db = extractDate(b.name);
+
+        if (da && db) return db.localeCompare(da); // récent -> ancien
+        if (da) return -1;
+        if (db) return 1;
+        return a.name.localeCompare(b.name);
+    });
+}
+
 function showFolders(folders){
 
     folders.forEach(folder=>{
@@ -93,8 +126,8 @@ async function loadFolder(path){
     const files = await getFolder(path);
 
     const folders = files.filter(f => f.type === "dir");
-    const images = files.filter(
-        f => f.type === "file" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name)
+    const images = sortImagesByDate(
+        files.filter(f => f.type === "file" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name))
     );
     currentImages = images;
 

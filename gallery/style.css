@@ -8,13 +8,12 @@
 }
 
 :root {
-    --bg1: #141419;
-    --bg2: #1d1d29;
-    --bg3: #3a3a55;
-    --bg4: #616a75;
-    --tx1: #d2d1c1;
+    --bg1: #0e0e0e;
+    --bg2: rgba(255, 255, 255, 0.05);
+    --bg3: rgba(255, 255, 255, 0.12);
+    --bg4: rgba(255, 255, 255, 0.4);
+    --tx1: #e8e6e0;
 }
-
 * {
     box-sizing: border-box;
 }
@@ -23,7 +22,14 @@ body {
     margin: 0;
     padding: 40px;
     background-color: var(--bg1);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+    background-image:
+        radial-gradient(1px 1px at 20px 30px, var(--bg3), transparent),
+        radial-gradient(1px 1px at 150px 80px, var(--bg3), transparent),
+        radial-gradient(1px 1px at 250px 20px, var(--bg3), transparent),
+        radial-gradient(1px 1px at 340px 150px, var(--bg3), transparent),
+        radial-gradient(1px 1px at 90px 200px, var(--bg3), transparent);
+    background-repeat: repeat;
+    background-size: 400px 300px;
     color: var(--tx1);
     font-family: Inter, sans-serif;
     height: 100vh;
@@ -125,6 +131,7 @@ h1 {
     border-radius:12px;
     cursor:pointer;
     transition:.2s;
+backdrop-filter: blur(6px);
 }
 
 .folder:hover {
@@ -314,6 +321,7 @@ h1 {
     color: var(--tx1);
     font-family: Inter, sans-serif;
     font-size: 13px;
+backdrop-filter: blur(6px);
 }
 
 .search-bar::placeholder {
@@ -341,6 +349,7 @@ h1 {
     text-decoration: none;
     font-size: 12px;
     transition: .2s;
+ backdrop-filter: blur(6px);
 }
 
 .link-btn:hover {

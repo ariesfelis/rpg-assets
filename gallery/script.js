@@ -355,7 +355,7 @@ function loadStats() {
     if (!statsEl) return;
 
     const { imageCount, fcCount } = computeStats();
-    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
+    statsEl.textContent = `${imageCount} avatars · ${fcCount} faceclaims`;
 }
 
 // lance la galerie : on charge d'abord data.json, puis on affiche tout

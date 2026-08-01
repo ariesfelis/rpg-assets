@@ -95,8 +95,7 @@ function showImages(images){
         const card=document.createElement("div");
         card.className="icon";
         card.innerHTML=`
-            <img src="${cdnUrl}" alt="">
-            <button class="copy" title="Copier l'URL">⧉</button>
+            <img src="${cdnUrl}" alt="" loading="lazy">            <button class="copy" title="copier l'url">⧉</button>
         `;
         const button=card.querySelector(".copy");
         const img = card.querySelector("img");
@@ -120,7 +119,7 @@ function showImages(images){
 
 // charge un dossier
 async function loadFolder(path){
-    gallery.innerHTML = "";
+    gallery.innerHTML = '<div class="loading">chargement…</div>';
     if (searchInput) searchInput.value = "";
 
     const files = await getFolder(path);
@@ -131,6 +130,7 @@ async function loadFolder(path){
     );
     currentImages = images;
 
+    gallery.innerHTML = ""; // retire le message de chargement
     showFolders(folders);
     showImages(images);
 
@@ -205,6 +205,19 @@ nextImage.onclick = (e) => {
     showImage(currentImageIndex + 1);
 };
 
+// navigation clavier dans la preview (flèches + échap)
+document.addEventListener("keydown", (e) => {
+    if (!preview || preview.classList.contains("hidden")) return;
+
+    if (e.key === "ArrowLeft") {
+        showImage(currentImageIndex - 1);
+    } else if (e.key === "ArrowRight") {
+        showImage(currentImageIndex + 1);
+    } else if (e.key === "Escape") {
+        hidePreview();
+    }
+});
+
 function showImage(index){
     if(index < 0){
         index = currentImages.length - 1;
@@ -215,17 +228,56 @@ function showImage(index){
     previewImage.src = toJsdelivr(currentImages[currentImageIndex].path);
 }
 
-// ajout fil d'ariane
+// ajout fil d'ariane cliquable
 function updateBreadcrumb(path){
     if(!breadcrumb) return;
 
-    const parts = path.split("/");
+    breadcrumb.innerHTML = "";
 
-    if(parts[0] === ROOT){
-        parts.shift();
+    const parts = path.split("/");
+    if(parts[0] === ROOT) parts.shift();
+
+    // "accueil" ramène toujours à la racine
+    const homeLink = document.createElement("span");
+    homeLink.textContent = "accueil";
+    homeLink.className = "crumb";
+    homeLink.onclick = () => navigateToPath(ROOT);
+    breadcrumb.appendChild(homeLink);
+
+    let cumulative = ROOT;
+    parts.forEach((part, i) => {
+        breadcrumb.appendChild(document.createTextNode(" / "));
+
+        cumulative += "/" + part;
+        const isLast = i === parts.length - 1;
+
+        const span = document.createElement("span");
+        span.textContent = part;
+        span.className = isLast ? "crumb current" : "crumb";
+
+        if (!isLast) {
+            const targetPath = cumulative;
+            span.onclick = () => navigateToPath(targetPath);
+        }
+
+        breadcrumb.appendChild(span);
+    });
+}
+
+// navigue directement vers un chemin donné (depuis un clic sur le fil d'ariane),
+// en reconstruisant l'historique pour que "Retour" reste cohérent ensuite
+function navigateToPath(path){
+    const segments = path.split("/");
+    history = [];
+
+    let cumulative = segments[0];
+    for (let i = 1; i < segments.length; i++) {
+        history.push(cumulative);
+        cumulative += "/" + segments[i];
     }
 
-    breadcrumb.textContent = parts.length ? parts.join(" / ") : "accueil";
+    currentPath = path;
+    loadFolder(path);
 }
 
 // recherche dans le dossier actuel
@@ -239,7 +291,7 @@ if (searchInput) {
     });
 }
 
-// --- Statistiques (avatars / FC) ---
+// --- Statistiques (avatars / fc) ---
 // Un seul appel API pour tout l'arbre du repo, pour ne pas
 // consommer la limite de requêtes GitHub (60/heure sans compte).
 async function getAllFiles() {

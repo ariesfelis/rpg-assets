@@ -203,5 +203,45 @@ searchInput.addEventListener("input", () => {
         card.style.display = name.includes(query) ? "" : "none";
     });
 });
+async function computeStats(path = ROOT) {
+    const files = await getFolder(path);
+    const folders = files.filter(f => f.type === "dir");
+    const images = files.filter(
+        f => f.type === "file" && /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(f.name)
+    );
+
+    let imageCount = images.length;
+    let fcCount = (images.length > 0 && folders.length === 0) ? 1 : 0;
+
+    for (const folder of folders) {
+        const sub = await computeStats(folder.path);
+        imageCount += sub.imageCount;
+        fcCount += sub.fcCount;
+    }
+
+    return { imageCount, fcCount };
+}
+
+async function loadStats() {
+    const statsEl = document.getElementById("stats");
+    if (!statsEl) return;
+
+    const CACHE_KEY = "gallery_stats";
+    const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6h
+    const cached = localStorage.getItem(CACHE_KEY);
+
+    if (cached) {
+        const data = JSON.parse(cached);
+        if (Date.now() - data.timestamp < CACHE_DURATION) {
+            statsEl.textContent = `${data.imageCount} avatars · ${data.fcCount} FC`;
+            return;
+        }
+    }
+
+    const { imageCount, fcCount } = await computeStats();
+    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ imageCount, fcCount, timestamp: Date.now() }));
+}
 // lance la galerie
-loadFolder(currentPath);
+loadFolder(currentPath); loadFolder(currentPath);
+loadStats();

@@ -212,8 +212,18 @@ if (searchInput) {
 async function getAllFiles() {
     const url = `https://api.github.com/repos/${USER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
     const res = await fetch(url);
+
+    if (!res.ok) {
+        throw new Error(`Erreur API GitHub (${res.status})`);
+    }
+
     const data = await res.json();
-    return data.tree || [];
+
+    if (!data.tree) {
+        throw new Error("Réponse API inattendue : pas d'arbre de fichiers");
+    }
+
+    return data.tree;
 }
 
 async function computeStats() {
@@ -254,9 +264,14 @@ async function loadStats() {
         }
     }
 
-    const { imageCount, fcCount } = await computeStats();
-    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ imageCount, fcCount, timestamp: Date.now() }));
+    try {
+        const { imageCount, fcCount } = await computeStats();
+        statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ imageCount, fcCount, timestamp: Date.now() }));
+    } catch (err) {
+        console.error("Erreur lors du calcul des stats :", err);
+        statsEl.textContent = "stats indisponibles pour le moment";
+    }
 }
 
 // lance la galerie

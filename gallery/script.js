@@ -4,12 +4,12 @@ const ROOT="assets";
 const BRANCH="main"; // adapte si ta branche par défaut a un autre nom
 
 // transforme un chemin de fichier GitHub en URL d'image utilisable partout
-// (raw.githubusercontent.com : pas de caractère "@", pas de dépendance à
-// une release GitHub, contrairement à jsDelivr — certains forums rejettent
-// les URLs contenant "@" ou celles qui nécessitent une release taguée)
+// (GitHub Pages sert directement les fichiers du repo sur un domaine
+// github.io réputé, plus susceptible d'être accepté par les validateurs
+// de forum stricts que raw.githubusercontent.com ou jsdelivr.net)
 function toImageUrl(path){
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-    return `https://raw.githubusercontent.com/${USER}/${REPO}/${BRANCH}/${encodedPath}`;
+    return `https://${USER}.github.io/${REPO}/${encodedPath}`;
 }
  
 const gallery=document.getElementById("gallery");
@@ -359,7 +359,7 @@ function loadStats() {
     if (!statsEl) return;
 
     const { imageCount, fcCount } = computeStats();
-    statsEl.textContent = `${imageCount} avatars · ${fcCount} faceclaims`;
+    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
 }
 
 // lance la galerie : on charge d'abord data.json, puis on affiche tout

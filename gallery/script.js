@@ -3,6 +3,11 @@ const REPO="rpg-assets";
 const ROOT="assets";
 const BRANCH="main"; // adapte si ta branche par défaut a un autre nom
 
+// change cette valeur régulièrement, comme un mot de passe.
+// Elle est visible dans le code source (donc pas une vraie sécurité),
+// juste un frein pour que ce ne soit pas trouvable par hasard.
+const PRIVATE_KEY = "taz";
+
 // transforme un chemin de fichier GitHub en URL d'image utilisable partout
 // (GitHub Pages sert directement les fichiers du repo sur un domaine
 // github.io réputé, plus susceptible d'être accepté par les validateurs
@@ -69,6 +74,22 @@ async function loadData(){
     const data = await res.json();
     ALL_FILES = data.files || [];
     ALL_FOLDERS = data.folders || [];
+
+    // mode galerie privée : seulement si la clé attendue est dans l'URL
+    // (ex: https://.../index.html?key=change-moi-123)
+    const params = new URLSearchParams(location.search);
+    if (params.get("key") === PRIVATE_KEY) {
+        try {
+            const privRes = await fetch("./data_prive.json");
+            if (privRes.ok) {
+                const privData = await privRes.json();
+                ALL_FILES = ALL_FILES.concat(privData.files || []);
+                ALL_FOLDERS = ALL_FOLDERS.concat(privData.folders || []);
+            }
+        } catch (err) {
+            console.warn("data_prive.json introuvable ou invalide :", err);
+        }
+    }
 }
 
 // simule la forme de réponse de l'ancienne API GitHub (liste de
@@ -403,7 +424,7 @@ function loadStats() {
     if (!statsEl) return;
 
     const { imageCount, fcCount } = computeStats();
-    statsEl.textContent = `${imageCount} avatars · ${fcCount} FC`;
+    statsEl.textContent = `${imageCount} avatars · ${fcCount} faceclaims`;
 }
 
 // lance la galerie : on charge d'abord data.json, puis on affiche tout

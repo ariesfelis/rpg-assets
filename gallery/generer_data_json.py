@@ -22,9 +22,13 @@ from pathlib import Path
 
 # --- A MODIFIER ---
 ASSETS_DIR = r"C:\Users\Lucie\Desktop\rpg-assets\assets"
+USER = "ariesfelis"
+REPO = "rpg-assets"
 # ------------------
 
 OUTPUT_FILE = "data.json"
+PRIVATE_DATA_FILE = "data_prive.json"  # a uploader sur GitHub aussi (voir explications)
+PRIVATE_LINKS_FILE = "liens_prives.txt"  # reste en LOCAL, ne pas uploader sur GitHub
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
 
@@ -43,8 +47,7 @@ def main():
         return
 
     files = []
-    folders = []
-    hidden_count = 0
+    hidden_files = []
 
     for file in assets_path.rglob("*"):
         if file.is_file() and file.suffix.lower() in IMAGE_EXTENSIONS:
@@ -52,24 +55,30 @@ def main():
             rel_str = str(rel).replace("\\", "/")
 
             if is_hidden(rel.parts[:-1]):
-                hidden_count += 1
+                hidden_files.append(rel_str)
                 continue
 
             files.append(rel_str)
 
     # dossiers (y compris vides), pour qu'ils apparaissent dans la
     # navigation meme sans image dedans
+    folders = []
+    hidden_folders = []
     for folder in assets_path.rglob("*"):
         if folder.is_dir():
             rel = folder.relative_to(assets_path.parent)
+            rel_str = str(rel).replace("\\", "/")
 
             if is_hidden(rel.parts):
+                hidden_folders.append(rel_str)
                 continue
 
-            folders.append(str(rel).replace("\\", "/"))
+            folders.append(rel_str)
 
     files.sort()
     folders.sort()
+    hidden_files.sort()
+    hidden_folders.sort()
 
     data = {"files": files, "folders": folders}
 
@@ -79,10 +88,32 @@ def main():
     )
 
     print(f"{len(files)} fichier(s) et {len(folders)} dossier(s) liste(s) dans {output_path.resolve()}")
-    if hidden_count:
-        print(f"{hidden_count} fichier(s) exclu(s) car dans un dossier prive (prefixe _)")
-    print("Copie ce data.json a la racine de ton repo GitHub, puis commit.")
+
+    if hidden_files or hidden_folders:
+        # data_prive.json : a uploader sur GitHub comme data.json, mais
+        # jamais reference dans index.html -> invisible sauf si on connait
+        # son nom exact et la cle secrete configuree dans script.js
+        private_data = {"files": hidden_files, "folders": hidden_folders}
+        private_data_path = Path(PRIVATE_DATA_FILE)
+        private_data_path.write_text(
+            json.dumps(private_data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"{len(hidden_files)} fichier(s) et {len(hidden_folders)} dossier(s) prive(s) -> {private_data_path.resolve()}")
+        print("(ce fichier data_prive.json doit etre uploade sur GitHub, comme data.json)")
+
+        # fichier de liens plats, pour toi en local uniquement
+        private_path = Path(PRIVATE_LINKS_FILE)
+        lines = [f"{USER}.github.io/{REPO}/" + "/".join(
+            part.replace(" ", "%20") for part in f.split("/")
+        ) for f in hidden_files]
+        lines = ["https://" + l for l in lines]
+        private_path.write_text("\n".join(lines), encoding="utf-8")
+
+        print(f"Liens directs individuels sauvegardes dans {private_path.resolve()} (LOCAL, ne pas uploader)")
+
+    print("Copie data.json (et data_prive.json si present) a la racine de ton repo GitHub, puis commit.")
 
 
 if __name__ == "__main__":
     main()
+    input("\nAppuie sur Entrée pour fermer...")

@@ -14,7 +14,7 @@ const PRIVATE_KEY = "taz";
 // de forum stricts que raw.githubusercontent.com ou jsdelivr.net)
 function toImageUrl(path){
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
-    return `https://${USER}.github.io/${REPO}/${encodedPath}`;
+    return `https://af-rpg.fyi/${encodedPath}`;
 }
  
 const gallery=document.getElementById("gallery");

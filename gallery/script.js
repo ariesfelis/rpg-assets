@@ -54,7 +54,7 @@ function trackPageview(path){
         window.goatcounter.count({ path: path, title: path, event: false });
     }
 }
-
+ 
 function trackCopyEvent(imagePath){
     if (window.goatcounter && window.goatcounter.count) {
         const folder = imagePath.substring(0, imagePath.lastIndexOf("/"));

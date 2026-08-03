@@ -38,6 +38,28 @@ const searchInput = document.getElementById("search");
 // sans plus jamais interroger api.github.com (donc aucun risque de
 // limite de requêtes, peu importe le nombre de visiteurs).
 let ALL_FILES = [];
+let ALL_FOLDERS = [];
+
+// --- Suivi GoatCounter ---
+// Une "vue" par dossier consulté (pas juste 1 vue globale), et un
+// "événement" à chaque copie de lien, regroupé par FC pour savoir
+// quelles galeries sont le plus utilisées, pas juste regardées.
+function trackPageview(path){
+    if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({ path: path, title: path, event: false });
+    }
+}
+
+function trackCopyEvent(imagePath){
+    if (window.goatcounter && window.goatcounter.count) {
+        const folder = imagePath.substring(0, imagePath.lastIndexOf("/"));
+        window.goatcounter.count({
+            path: "copie-lien:" + folder,
+            title: "Copie de lien - " + folder,
+            event: true
+        });
+    }
+}
 
 async function loadData(){
     const res = await fetch("./data.json");
@@ -46,10 +68,12 @@ async function loadData(){
     }
     const data = await res.json();
     ALL_FILES = data.files || [];
+    ALL_FOLDERS = data.folders || [];
 }
 
 // simule la forme de réponse de l'ancienne API GitHub (liste de
 // {type, name, path}) pour un dossier donné, à partir de ALL_FILES
+// et ALL_FOLDERS (pour que les dossiers vides apparaissent aussi)
 function getFolder(path){
     const prefix = path.endsWith("/") ? path : path + "/";
     const seenFolders = new Set();
@@ -65,12 +89,25 @@ function getFolder(path){
             // fichier directement dans ce dossier
             entries.push({ type: "file", name: rest, path: filePath });
         } else {
-            // sous-dossier
+            // sous-dossier (contient au moins une image)
             const folderName = rest.slice(0, slashIndex);
             if (!seenFolders.has(folderName)) {
                 seenFolders.add(folderName);
                 entries.push({ type: "dir", name: folderName, path: prefix + folderName });
             }
+        }
+    });
+
+    // sous-dossiers vides, déclarés explicitement dans data.json
+    ALL_FOLDERS.forEach(folderPath => {
+        if (!folderPath.startsWith(prefix)) return;
+
+        const rest = folderPath.slice(prefix.length);
+        if (rest === "" || rest.includes("/")) return; // seulement les enfants directs
+
+        if (!seenFolders.has(rest)) {
+            seenFolders.add(rest);
+            entries.push({ type: "dir", name: rest, path: prefix + rest });
         }
     });
 
@@ -152,6 +189,7 @@ function showImages(images){
         button.onclick=(e)=>{
             e.stopPropagation();
             navigator.clipboard.writeText(cdnUrl); // <-- copie le lien direct GitHub
+            trackCopyEvent(image.path);
             button.textContent="✓";
             setTimeout(()=>{
                 button.textContent="⧉";
@@ -177,6 +215,10 @@ function loadFolder(path){
     showFolders(folders);
     showImages(images);
 
+    if (folders.length === 0 && images.length === 0) {
+        gallery.innerHTML = '<div class="loading">Rien ici pour l\'instant — reviens bientôt !</div>';
+    }
+
     if(path !== ROOT){
         back.classList.remove("hidden");
     }else{
@@ -187,6 +229,8 @@ function loadFolder(path){
 
     // met à jour l'URL pour refléter le dossier actuel
     location.hash = encodeURIComponent(path);
+
+    trackPageview(path);
 }
 
 // back to homepage

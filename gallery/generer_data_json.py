@@ -29,6 +29,11 @@ OUTPUT_FILE = "data.json"
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
 
 
+def is_hidden(parts):
+    """Un dossier dont le nom (ou un parent) commence par '_' est exclu (non listé)."""
+    return any(part.startswith("_") for part in parts)
+
+
 def main():
     assets_path = Path(ASSETS_DIR)
 
@@ -38,23 +43,44 @@ def main():
         return
 
     files = []
+    folders = []
+    hidden_count = 0
 
     for file in assets_path.rglob("*"):
         if file.is_file() and file.suffix.lower() in IMAGE_EXTENSIONS:
-            # chemin relatif incluant "assets/..." (meme format que l'API GitHub)
             rel = file.relative_to(assets_path.parent)
-            files.append(str(rel).replace("\\", "/"))
+            rel_str = str(rel).replace("\\", "/")
+
+            if is_hidden(rel.parts[:-1]):
+                hidden_count += 1
+                continue
+
+            files.append(rel_str)
+
+    # dossiers (y compris vides), pour qu'ils apparaissent dans la
+    # navigation meme sans image dedans
+    for folder in assets_path.rglob("*"):
+        if folder.is_dir():
+            rel = folder.relative_to(assets_path.parent)
+
+            if is_hidden(rel.parts):
+                continue
+
+            folders.append(str(rel).replace("\\", "/"))
 
     files.sort()
+    folders.sort()
 
-    data = {"files": files}
+    data = {"files": files, "folders": folders}
 
     output_path = Path(OUTPUT_FILE)
     output_path.write_text(
         json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    print(f"{len(files)} fichier(s) liste(s) dans {output_path.resolve()}")
+    print(f"{len(files)} fichier(s) et {len(folders)} dossier(s) liste(s) dans {output_path.resolve()}")
+    if hidden_count:
+        print(f"{hidden_count} fichier(s) exclu(s) car dans un dossier prive (prefixe _)")
     print("Copie ce data.json a la racine de ton repo GitHub, puis commit.")
 
 

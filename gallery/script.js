@@ -221,17 +221,16 @@ function showFolders(folders){
 
 function showImages(images){
     images.forEach(image=>{
-        const cdnUrl = toImageUrl(image.path); // <-- lien direct GitHub
-        const readableDate = getReadableDate(image.name); // <-- NOUVEAU : on génère le texte
+        const cdnUrl = toImageUrl(image.path); 
+        const readableDate = getReadableDate(image.name); // Récupère la date (ex: "Août 2026")
 
         const card=document.createElement("div");
         card.className="icon";
-        // NOUVEAU : On ajoute title="${readableDate}" dans la balise img
         card.innerHTML=`
-            <img src="${cdnUrl}" alt="${image.name}" title="${readableDate}" loading="lazy">
-            <button class="copy" title="copier l'url">⧉</button>
+            <img src="${cdnUrl}" alt="" loading="lazy">
+            <div class="image-date">${readableDate}</div>
+            <button class="copy" title="Copier l'URL">⧉</button>
         `;
-        // ... (garde le reste de la fonction intact)
         const button=card.querySelector(".copy");
         const img = card.querySelector("img");
 
@@ -242,7 +241,7 @@ function showImages(images){
 
         button.onclick=(e)=>{
             e.stopPropagation();
-            navigator.clipboard.writeText(cdnUrl); // <-- copie le lien direct GitHub
+            navigator.clipboard.writeText(cdnUrl);
             trackCopyEvent(image.path);
             button.textContent="✓";
             setTimeout(()=>{

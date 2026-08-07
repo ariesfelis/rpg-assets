@@ -246,6 +246,32 @@ backdrop-filter: blur(14px) saturate(140%);
     opacity: 0;
 }
 
+/* On adapte la carte image pour laisser un tout petit peu de place en bas si besoin, 
+   ou on positionne la date proprement en subtil par-dessus l'image au survol, 
+   ou juste en dessous. Choisissons juste en dessous : */
+
+.icon {
+    height: auto; /* Laisse la carte s'adapter à l'image + la date */
+    margin-bottom: 10px;
+}
+
+.icon img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.image-date {
+    font-size: 11px;
+    color: var(--bg4);
+    text-align: center;
+    margin-top: 6px;
+    font-family: Inter, sans-serif;
+    letter-spacing: -0.01em;
+}
+
 .nav{
     position: absolute;
     top: 50%;

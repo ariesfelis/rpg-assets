@@ -16,7 +16,7 @@ function toImageUrl(path){
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
     return `https://af-rpg.fyi/${encodedPath}`;
 }
-
+ 
 const gallery=document.getElementById("gallery");
 const back=document.getElementById("back");
 
@@ -54,7 +54,7 @@ function trackPageview(path){
         window.goatcounter.count({ path: path, title: path, event: false });
     }
 }
-
+ 
 function trackCopyEvent(imagePath){
     if (window.goatcounter && window.goatcounter.count) {
         const folder = imagePath.substring(0, imagePath.lastIndexOf("/"));
@@ -169,7 +169,6 @@ function sortImagesByDate(images){
         const da = extractDate(a.name);
         const db = extractDate(b.name);
 
-        if (da && db) return db.localeCompare(da); // récent -> ancien
         if (da && db) {
             // Si c'est exactement le même mois et la même année, on trie sur le numéro final (de Z à A)
             if (da === db) {
@@ -180,11 +179,9 @@ function sortImagesByDate(images){
         
         if (da) return -1;
         if (db) return 1;
-        return a.name.localeCompare(b.name);
         return b.name.localeCompare(a.name);
     });
 }
-
 function showFolders(folders){
 
     folders.forEach(folder=>{
@@ -454,3 +451,4 @@ function loadStats() {
         console.error("Erreur au chargement de la galerie :", err);
         gallery.innerHTML = '<div class="loading">Erreur de chargement — vérifie que data.json existe bien à la racine du repo.</div>';
     }
+})();

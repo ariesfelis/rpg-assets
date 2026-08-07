@@ -151,6 +151,14 @@ function extractDate(filename){
     m = filename.match(/_(\d{8})_/);
     if (m) return m[1];
 
+    // 3. NOUVEAU : format MMAAAA_ en début de nom
+    m = filename.match(/^(\d{2})(\d{4})_/);
+    if (m) {
+        const [, mm, yyyy] = m;
+        // On retourne l'année PUIS le mois pour que le tri fonctionne correctement
+        return `${yyyy}${mm}`;
+    }
+
     return null;
 }
 
@@ -161,13 +169,19 @@ function sortImagesByDate(images){
         const da = extractDate(a.name);
         const db = extractDate(b.name);
 
-        if (da && db) return db.localeCompare(da); // récent -> ancien
+        if (da && db) {
+            // Si c'est exactement le même mois et la même année, on trie sur le numéro final (de Z à A)
+            if (da === db) {
+                 return b.name.localeCompare(a.name);
+            }
+            return db.localeCompare(da); // Tri du plus récent au plus ancien
+        }
+        
         if (da) return -1;
         if (db) return 1;
-        return a.name.localeCompare(b.name);
+        return b.name.localeCompare(a.name);
     });
 }
-
 function showFolders(folders){
 
     folders.forEach(folder=>{

@@ -182,6 +182,22 @@ function sortImagesByDate(images){
         return b.name.localeCompare(a.name);
     });
 }
+
+function getReadableDate(filename) {
+    const raw = extractDate(filename); 
+    if (!raw) return "Date inconnue"; // Si aucune date n'est détectée
+
+    const year = raw.substring(0, 4);
+    const monthNum = parseInt(raw.substring(4, 6), 10);
+    const day = raw.substring(6, 8); // Peut être vide selon le format
+
+    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+    const monthName = months[monthNum - 1];
+
+    // Retourne "15 Août 2026" ou juste "Août 2026" selon ce qui a été trouvé
+    return day ? `${day} ${monthName} ${year}` : `${monthName} ${year}`;
+}
+
 function showFolders(folders){
 
     folders.forEach(folder=>{
@@ -203,16 +219,18 @@ function showFolders(folders){
 }
 
 function showImages(images){
-
     images.forEach(image=>{
         const cdnUrl = toImageUrl(image.path); // <-- lien direct GitHub
+        const readableDate = getReadableDate(image.name); // <-- NOUVEAU : on génère le texte
 
         const card=document.createElement("div");
         card.className="icon";
+        // NOUVEAU : On ajoute title="${readableDate}" dans la balise img
         card.innerHTML=`
-            <img src="${cdnUrl}" alt="" loading="lazy">
-            <button class="copy" title="Copier l'URL">⧉</button>
+            <img src="${cdnUrl}" alt="${image.name}" title="${readableDate}" loading="lazy">
+            <button class="copy" title="copier l'url">⧉</button>
         `;
+        // ... (garde le reste de la fonction intact)
         const button=card.querySelector(".copy");
         const img = card.querySelector("img");
 

@@ -185,16 +185,15 @@ function sortImagesByDate(images){
 
 function getReadableDate(filename) {
     const raw = extractDate(filename); 
-    if (!raw) return "Date inconnue"; // Si aucune date n'est détectée
+    if (!raw) return ""; 
 
     const year = raw.substring(0, 4);
     const monthNum = parseInt(raw.substring(4, 6), 10);
-    const day = raw.substring(6, 8); // Peut être vide selon le format
+    const day = raw.substring(6, 8);
 
-    const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+    const months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
     const monthName = months[monthNum - 1];
 
-    // Retourne "15 Août 2026" ou juste "Août 2026" selon ce qui a été trouvé
     return day ? `${day} ${monthName} ${year}` : `${monthName} ${year}`;
 }
 
@@ -221,8 +220,8 @@ function showFolders(folders){
 
 function showImages(images){
     images.forEach(image=>{
-        const cdnUrl = toImageUrl(image.path); 
-        const readableDate = getReadableDate(image.name); // Récupère la date (ex: "Août 2026")
+        const cdnUrl = toImageUrl(image.path);
+        const readableDate = getReadableDate(image.name);
 
         const card=document.createElement("div");
         card.className="icon";
@@ -251,7 +250,6 @@ function showImages(images){
         gallery.appendChild(card);
     });
 }
-
 // charge un dossier (aucun appel réseau, tout vient de ALL_FILES déjà en mémoire)
 function loadFolder(path){
     if (searchInput) searchInput.value = "";

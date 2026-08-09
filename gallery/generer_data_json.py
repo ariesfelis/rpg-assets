@@ -26,6 +26,11 @@ USER = "ariesfelis"
 REPO = "rpg-assets"
 # ------------------
 
+# Nom du dossier (a n'importe quel niveau) traite comme prive.
+# Tout ce qui se trouve dedans (ou dans un sous-dossier dedans) finit
+# dans data_prive.json au lieu de data.json.
+PRIVATE_FOLDER_NAME = "prive"
+
 OUTPUT_FILE = "data.json"
 PRIVATE_DATA_FILE = "data_prive.json"  # a uploader sur GitHub aussi (voir explications)
 PRIVATE_LINKS_FILE = "liens_prives.txt"  # reste en LOCAL, ne pas uploader sur GitHub
@@ -34,8 +39,9 @@ IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
 
 
 def is_hidden(parts):
-    """Un dossier dont le nom (ou un parent) commence par '_' est exclu (non listé)."""
-    return any(part.startswith("_") for part in parts)
+    """Un dossier nomme exactement PRIVATE_FOLDER_NAME (ou un de ses
+    parents) rend tout son contenu prive."""
+    return any(part == PRIVATE_FOLDER_NAME for part in parts)
 
 
 def main():

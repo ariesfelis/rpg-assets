@@ -135,10 +135,11 @@ function getFolder(path){
     return entries;
 }
 
-// extrait une date normalisée AAAAMMJJ du nom de fichier, si présente.
-// Reconnaît deux formats :
+// extrait une date normalisée AAAAMMJJ (ou AAAAMM) du nom de fichier, si présente.
+// Reconnaît trois formats :
 //   1. Nouvelle convention : jjmmaaaa_nom_nombre.ext (ex: 15032024_zendaya_1.png)
 //   2. Ancien format TumblThree : ..._aaaammjj_... (ex: ..._20230131_ariesfelis_...)
+//   3. mmaaaa_ en début de nom (ex: 032024_zendaya_1.png)
 function extractDate(filename){
     // 1. jjmmaaaa au tout début du nom
     let m = filename.match(/^(\d{2})(\d{2})(\d{4})_/);
@@ -157,6 +158,28 @@ function extractDate(filename){
         const [, mm, yyyy] = m;
         // On retourne l'année PUIS le mois pour que le tri fonctionne correctement
         return `${yyyy}${mm}`;
+    }
+
+    return null;
+}
+
+// transforme la date brute (AAAAMMJJ ou AAAAMM) issue de extractDate()
+// en un libellé lisible affiché sous chaque avatar (jj/mm/aaaa ou mm/aaaa)
+function formatDateLabel(filename){
+    const raw = extractDate(filename);
+    if (!raw) return null;
+
+    if (raw.length === 8) {
+        const yyyy = raw.slice(0, 4);
+        const mm = raw.slice(4, 6);
+        const dd = raw.slice(6, 8);
+        return `${dd}/${mm}/${yyyy}`;
+    }
+
+    if (raw.length === 6) {
+        const yyyy = raw.slice(0, 4);
+        const mm = raw.slice(4, 6);
+        return `${mm}/${yyyy}`;
     }
 
     return null;
@@ -206,12 +229,14 @@ function showImages(images){
 
     images.forEach(image=>{
         const cdnUrl = toImageUrl(image.path); // <-- lien direct GitHub
+        const dateLabel = formatDateLabel(image.name);
 
         const card=document.createElement("div");
         card.className="icon";
         card.innerHTML=`
             <img src="${cdnUrl}" alt="" loading="lazy">
             <button class="copy" title="Copier l'URL">⧉</button>
+            ${dateLabel ? `<div class="image-date">${dateLabel}</div>` : ""}
         `;
         const button=card.querySelector(".copy");
         const img = card.querySelector("img");
@@ -386,8 +411,9 @@ function updateBreadcrumb(path){
     });
 }
 
-// navigue directement vers un chemin donné (depuis un clic sur le fil d'ariane),
-// en reconstruisant l'historique pour que "Retour" reste cohérent ensuite
+// navigue directement vers un chemin donné (depuis un clic sur le fil d'ariane
+// ou sur un résultat de recherche), en reconstruisant l'historique pour que
+// "Retour" reste cohérent ensuite
 function navigateToPath(path){
     const segments = path.split("/");
     history = [];
@@ -402,14 +428,80 @@ function navigateToPath(path){
     loadFolder(path);
 }
 
-// recherche dans le dossier actuel
+// --- Recherche globale de FC depuis n'importe quelle page ---
+// Contrairement à un simple filtre du dossier courant, ceci cherche parmi
+// TOUS les dossiers qui contiennent directement des avatars (donc les
+// dossiers de FC, pas les dossiers de catégorie type "avatar homme/femme"
+// ou de tri alphabétique), pour qu'on puisse taper un nom de FC depuis
+// l'accueil sans avoir à naviguer dedans manuellement.
+function getFCFolders(){
+    const map = new Map(); // path -> name
+
+    ALL_FILES.forEach(filePath => {
+        if (!/\.(png|jpg|jpeg|webp|gif|svg)$/i.test(filePath)) return;
+        const folderPath = filePath.substring(0, filePath.lastIndexOf("/"));
+        if (!map.has(folderPath)) {
+            map.set(folderPath, folderPath.substring(folderPath.lastIndexOf("/") + 1));
+        }
+    });
+
+    return [...map.entries()].map(([path, name]) => ({ path, name }));
+}
+
+function showSearchResults(query){
+    gallery.innerHTML = "";
+    back.classList.add("hidden");
+
+    if(breadcrumb){
+        breadcrumb.innerHTML = "";
+        const label = document.createElement("span");
+        label.textContent = `résultats pour "${query}"`;
+        breadcrumb.appendChild(label);
+    }
+
+    const q = query.toLowerCase();
+    const matches = getFCFolders()
+        .filter(f => f.name.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    if(matches.length === 0){
+        gallery.innerHTML = '<div class="loading">Aucun fc trouvé pour cette recherche.</div>';
+        return;
+    }
+
+    matches.forEach(folder=>{
+        const relative = folder.path.slice(ROOT.length + 1); // ex: "avatar femme/z/zendaya"
+        const segments = relative.split("/");
+        segments.pop();
+        const parentLabel = segments.join(" / ");
+
+        const card=document.createElement("div");
+        card.className="folder";
+        card.innerHTML=`
+		<img class="folder-icon" src="./png/folder.png" alt="folder">
+		<div class="name">${folder.name}</div>
+		${parentLabel ? `<div class="folder-path">${parentLabel}</div>` : ""}
+	`;
+
+        card.onclick=()=>{
+            navigateToPath(folder.path);
+        };
+
+        gallery.appendChild(card);
+    });
+}
+
+// recherche globale : dès qu'une requête est tapée, on affiche les FC
+// correspondants depuis toute la galerie plutôt que de filtrer le dossier
+// courant ; on revient à la navigation normale quand le champ est vidé
 if (searchInput) {
     searchInput.addEventListener("input", () => {
-        const query = searchInput.value.toLowerCase();
-        document.querySelectorAll(".folder").forEach(card => {
-            const name = card.querySelector(".name").textContent.toLowerCase();
-            card.style.display = name.includes(query) ? "" : "none";
-        });
+        const query = searchInput.value.trim();
+        if (query === "") {
+            loadFolder(currentPath);
+        } else {
+            showSearchResults(query);
+        }
     });
 }
 

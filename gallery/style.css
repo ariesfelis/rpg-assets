@@ -151,6 +151,14 @@ backdrop-filter: blur(14px) saturate(140%);
     width: 36px;
 }
 
+.folder-path {
+    margin-top: 4px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--bg4);
+    letter-spacing: 0.02em;
+}
+
 .icon {
     position: relative;
     width: 160px;

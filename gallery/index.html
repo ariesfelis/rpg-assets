@@ -15,10 +15,8 @@
     <p class="tagline">graphiste rpg depuis 2020 · <span id="stats">calcul en cours...</span></p>
 
     <div class="notice">
-        <p>🇫🇷 - pas besoin de réhéberger les images : le lien est directement utilisable, copiez-le et collez-le tel quel.</p>
-        <p>🇬🇧 - no need to re-host images : the link is directly usable, just copy and paste it as is.</p>
-        <p>🇫🇷 - pour retrouver un fc précis, tape simplement son nom dans la barre de recherche : pas besoin de cliquer dans avatar homme / avatar femme.</p>
-        <p>🇬🇧 - to find a specific fc, just type its name in the search bar : no need to click through avatar homme / avatar femme.</p>
+        <p>🇫🇷 - <span class="highlight">pas besoin de réhéberger les images</span> : le lien est directement utilisable, copiez-le et collez-le tel quel.</p>
+        <p>🇬🇧 - <span class="highlight">no need to re-host images</span> : the link is directly usable, just copy and paste it as is.</p>
         <p class="credit-required">
             <span class="lang-tag warn">!</span> crédit obligatoire ; credit is mandatory.
         </p>
@@ -36,7 +34,10 @@
         <span id="breadcrumb"></span>
     </div>
 
-    <input type="text" id="search" class="search-bar" placeholder="rechercher un fc...">
+    <div class="search-row">
+        <input type="text" id="search" class="search-bar" placeholder="rechercher un fc...">
+        <span class="search-hint">🔍 tape le nom d'un fc pour le trouver direct, sans naviguer dans les dossiers</span>
+    </div>
 
     <div id="gallery"></div>
 </div>

@@ -136,10 +136,12 @@ function getFolder(path){
 }
 
 // extrait une date normalisée AAAAMMJJ (ou AAAAMM) du nom de fichier, si présente.
-// Reconnaît trois formats :
-//   1. Nouvelle convention : jjmmaaaa_nom_nombre.ext (ex: 15032024_zendaya_1.png)
-//   2. Ancien format TumblThree : ..._aaaammjj_... (ex: ..._20230131_ariesfelis_...)
-//   3. mmaaaa_ en début de nom (ex: 032024_zendaya_1.png)
+// Reconnaît plusieurs formats courants :
+//   1. jjmmaaaa_ au tout début du nom (ex: 15032024_zendaya_1.png)
+//   2. ..._aaaammjj_... entouré d'underscores (ancien format TumblThree)
+//   3. jj-mm-aaaa ou jj.mm.aaaa, où que ce soit dans le nom
+//   4. aaaa-mm-jj ou aaaa.mm.jj (format ISO), où que ce soit dans le nom
+//   5. mmaaaa_ en début de nom (ex: 032024_zendaya_1.png)
 function extractDate(filename){
     // 1. jjmmaaaa au tout début du nom
     let m = filename.match(/^(\d{2})(\d{2})(\d{4})_/);
@@ -152,8 +154,23 @@ function extractDate(filename){
     m = filename.match(/_(\d{8})_/);
     if (m) return m[1];
 
-    // 3. NOUVEAU : format MMAAAA_ en début de nom
-    m = filename.match(/^(\d{2})(\d{4})_/);
+    // 3. jj-mm-aaaa ou jj.mm.aaaa
+    m = filename.match(/(\d{2})[-.](\d{2})[-.](\d{4})/);
+    if (m) {
+        const [, dd, mm, yyyy] = m;
+        return `${yyyy}${mm}${dd}`;
+    }
+
+    // 4. aaaa-mm-jj ou aaaa.mm.jj (format ISO)
+    m = filename.match(/(\d{4})[-.](\d{2})[-.](\d{2})/);
+    if (m) {
+        const [, yyyy, mm, dd] = m;
+        return `${yyyy}${mm}${dd}`;
+    }
+
+    // 5. format MMAAAA_ (ex: 082020_2.png → août 2020), au début du nom
+    //    ou juste après un underscore ailleurs dans le nom
+    m = filename.match(/(?:^|_)(\d{2})(\d{4})_/);
     if (m) {
         const [, mm, yyyy] = m;
         // On retourne l'année PUIS le mois pour que le tri fonctionne correctement
@@ -434,6 +451,17 @@ function navigateToPath(path){
 // dossiers de FC, pas les dossiers de catégorie type "avatar homme/femme"
 // ou de tri alphabétique), pour qu'on puisse taper un nom de FC depuis
 // l'accueil sans avoir à naviguer dedans manuellement.
+// normalise un nom pour la recherche : minuscules, et les underscores /
+// tirets traités comme des espaces, pour que "addison rae" trouve
+// "addison_rae" (et inversement) peu importe la ponctuation utilisée
+function normalizeForSearch(str){
+    return str
+        .toLowerCase()
+        .replace(/[_\-]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function getFCFolders(){
     const map = new Map(); // path -> name
 
@@ -459,9 +487,9 @@ function showSearchResults(query){
         breadcrumb.appendChild(label);
     }
 
-    const q = query.toLowerCase();
+    const q = normalizeForSearch(query);
     const matches = getFCFolders()
-        .filter(f => f.name.toLowerCase().includes(q))
+        .filter(f => normalizeForSearch(f.name).includes(q))
         .sort((a, b) => a.name.localeCompare(b.name));
 
     if(matches.length === 0){
